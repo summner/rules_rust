@@ -1,6 +1,7 @@
 # Rust rules
 
 * [cargo_build_script](#cargo_build_script)
+* [cargo_manifest_aspect](#cargo_manifest_aspect)
 * [rust_benchmark](#rust_benchmark)
 * [rust_binary](#rust_binary)
 * [rust_bindgen](#rust_bindgen)
@@ -1143,5 +1144,31 @@ N.B. A "proxy repository" is needed to allow for registering the toolchain (with
 | <a id="rust_repository_set-edition"></a>edition |  The rust edition to be used by default (2015 (if None) or 2018).   |  <code>None</code> |
 | <a id="rust_repository_set-dev_components"></a>dev_components |  Whether to download the rustc-dev components.     Requires version to be "nightly". Defaults to False.   |  <code>False</code> |
 | <a id="rust_repository_set-sha256s"></a>sha256s |  A dict associating tool subdirectories to sha256 hashes. See     [rust_repositories](#rust_repositories) for more details.   |  <code>None</code> |
+
+
+<a id="#cargo_manifest_aspect"></a>
+
+## cargo_manifest_aspect
+
+<pre>
+cargo_manifest_aspect(<a href="#cargo_manifest_aspect-name">name</a>)
+</pre>
+
+An aspect that generates Cargo metadata (Cargo.toml files) for `rust_binary` and `rust_library` targets.
+
+**ASPECT ATTRIBUTES**
+
+
+| Name | Type |
+| :------------- | :------------- |
+| deps| String |
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cargo_manifest_aspect-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |   |
 
 
