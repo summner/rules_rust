@@ -33,6 +33,10 @@ PAGES = {
         "rust_doc",
         "rust_doc_test",
     ],
+    "cargo": [
+        "cargo_build_script",
+        "cargo_manifest_aspect",
+    ],
     "rust_proto": [
         "rust_proto_toolchain",
         "rust_proto_library",
@@ -48,9 +52,6 @@ PAGES = {
         # "rust_wasm_bindgen_repositories",
         "rust_wasm_bindgen_toolchain",
         "rust_wasm_bindgen",
-    ],
-    "cargo_build_script": [
-        "cargo_build_script",
     ],
     "rust_repositories": [
         "rust_repositories",

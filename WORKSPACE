@@ -42,6 +42,12 @@ rbe_autoconfig(
     name = "buildkite_config",
 )
 
+# Load all dependencies for tests
+
+load("@io_bazel_rules_rust//test:repositories.bzl", "test_repositories")
+
+test_repositories()
+
 # Load all dependencies for examples
 
 local_repository(

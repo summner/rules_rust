@@ -47,6 +47,10 @@ load(
 #     _rust_wasm_bindgen_repositories = "rust_wasm_bindgen_repositories",
 # )
 load(
+    "@io_bazel_rules_rust//cargo:cargo_manifest.bzl",
+    _cargo_manifest_aspect = "cargo_manifest_aspect",
+)
+load(
     "@io_bazel_rules_rust//wasm_bindgen:wasm_bindgen.bzl",
     _rust_wasm_bindgen = "rust_wasm_bindgen",
     _rust_wasm_bindgen_toolchain = "rust_wasm_bindgen_toolchain",
@@ -70,6 +74,7 @@ rust_toolchain = _rust_toolchain
 rust_proto_toolchain = _rust_proto_toolchain
 
 cargo_build_script = _cargo_build_script
+cargo_manifest_aspect = _cargo_manifest_aspect
 
 rust_wasm_bindgen = _rust_wasm_bindgen
 rust_wasm_bindgen_toolchain = _rust_wasm_bindgen_toolchain

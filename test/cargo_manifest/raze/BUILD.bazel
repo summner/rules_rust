@@ -1,0 +1,22 @@
+"""
+@generated
+cargo-raze generated Bazel file.
+
+DO NOT EDIT! Replaced on runs of cargo-raze
+"""
+
+package(default_visibility = ["//visibility:public"])
+
+licenses([
+    "notice",  # See individual crates for specific licenses
+])
+
+# Aliased targets
+alias(
+    name = "cargo_toml",
+    actual = "@rules_rust_test_cargo_manifest__cargo_toml__0_8_1//:cargo_toml",
+    tags = [
+        "cargo-raze",
+        "manual",
+    ],
+)

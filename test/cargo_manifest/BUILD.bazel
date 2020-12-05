@@ -1,0 +1,31 @@
+load("//rust:rust.bzl", "rust_binary", "rust_library")
+load(":cargo_manifest_test.bzl", "cargo_manifest_test")
+
+rust_library(
+    name = "test_lib",
+    srcs = ["lib.rs"],
+    edition = "2018",
+)
+
+rust_binary(
+    name = "test_bin",
+    srcs = ["main.rs"],
+    edition = "2018",
+    deps = [
+        ":test_lib",
+    ],
+)
+
+rust_binary(
+    name = "runner",
+    srcs = ["runner.rs"],
+    edition = "2018",
+    deps = [
+        "@io_bazel_rules_rust//test/cargo_manifest/raze:cargo_toml",
+    ],
+)
+
+cargo_manifest_test(
+    name = "test",
+    deps = ["test_bin"],
+)
