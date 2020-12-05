@@ -50,6 +50,9 @@ load(
     "@io_bazel_rules_rust//cargo:cargo_manifest.bzl",
     _cargo_manifest_aspect = "cargo_manifest_aspect",
 )
+load("@io_bazel_rules_rust//cbindgen:cbindgen.bzl",
+    _rust_cbindgen_library = "rust_cbindgen_library",
+)
 load(
     "@io_bazel_rules_rust//wasm_bindgen:wasm_bindgen.bzl",
     _rust_wasm_bindgen = "rust_wasm_bindgen",
@@ -69,6 +72,8 @@ rust_grpc_library = _rust_grpc_library
 rust_bindgen_toolchain = _rust_bindgen_toolchain
 rust_bindgen = _rust_bindgen
 rust_bindgen_library = _rust_bindgen_library
+
+rust_cbindgen_library = _rust_cbindgen_library
 
 rust_toolchain = _rust_toolchain
 rust_proto_toolchain = _rust_proto_toolchain

@@ -5,6 +5,7 @@ dependencies. This file contains the required macros to pull these dependencies
 """
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("@examples//cbindgen:cbindgen_examples_transitive_deps.bzl", "cbindgen_examples_transitive_dependencies")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 
 # buildifier: disable=unnamed-macro
@@ -19,6 +20,8 @@ def transitive_deps(is_top_level = False):
     rules_proto_dependencies()
 
     rules_proto_toolchains()
+    
+    cbindgen_examples_transitive_dependencies()
 
     # Needed by the hello_uses_cargo_manifest_dir example.
     if is_top_level:

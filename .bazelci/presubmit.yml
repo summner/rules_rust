@@ -3,6 +3,9 @@ default_linux_targets: &default_linux_targets
 - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
 - "..."
 - "@examples//..."
+# TODO: Fix Windows errors related to these targets and remove this and manual tag.
+- "@examples//cbindgen/examples_cc:cbindgen_cc_cdyliblib_test"
+- "@examples//cbindgen/examples_py:cbindgen_example_test"
 # TODO: Switch manual tag to platform constraint after bazel 4.0.
 - "//test/versioned_dylib:versioned_dylib_test"
 # Bindgen currently only has a working toolchain for 18.04
@@ -18,6 +21,9 @@ tasks:
       - "@examples//..."
       # TODO: Switch manual tag to platform constraint after bazel 4.0.
       - "//test/versioned_dylib:versioned_dylib_test"
+      # TODO: Fix Windows errors related to these targets and remove this and manual tag.
+      - "@examples//cbindgen/examples_cc:cbindgen_cc_cdyliblib_test"
+      - "@examples//cbindgen/examples_py:cbindgen_example_test"
   ubuntu2004:
     name: "Minimum Supported Version"
     bazel: "3.0.0"
@@ -28,6 +34,9 @@ tasks:
     - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
     - "..."
     - "@examples//..."
+    # TODO: Fix Windows errors related to these targets and remove this and manual tag.
+    - "@examples//cbindgen/examples_cc:cbindgen_cc_cdyliblib_test"
+    - "@examples//cbindgen/examples_py:cbindgen_example_test"
     # Skip tests for dylib support on osx, since we don't support it yet.
     - "-@examples//ffi/rust_calling_c:matrix_dylib_test"
     - "-@examples//ffi/rust_calling_c:matrix_dynamically_linked"
@@ -48,6 +57,9 @@ tasks:
     - "-@examples//ffi/rust_calling_c/simple/..."
     # See https://github.com/bazelbuild/bazel/issues/9987
     - "-@examples//ffi/rust_calling_c:matrix_dylib_test"
+    # TODO: Fix Windows errors related to these targets and remove this and manual tag.
+    - "@examples//cbindgen/examples_cc:cbindgen_cc_cdyliblib_test"
+    - "@examples//cbindgen/examples_py:cbindgen_example_test"
   windows:
     build_flags:
     - "--enable_runfiles" # this is not enabled by default on windows and is necessary for the cargo build scripts

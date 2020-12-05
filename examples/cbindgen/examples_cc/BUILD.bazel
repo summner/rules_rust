@@ -1,0 +1,149 @@
+"""Example of `rust_cbindgen` rule with basic C++ test binary"""
+
+load("@examples//cbindgen/examples_cc:cbindgen_cc_example.bzl", "generate_src")
+load("@io_bazel_rules_rust//cbindgen:cbindgen.bzl", "rust_cbindgen_library")
+load("@io_bazel_rules_rust//cbindgen:toolchain.bzl", "rust_cbindgen_toolchain")
+load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library")
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+# C++ static library example
+rust_library(
+    name = "rust_staticlib",
+    srcs = ["@examples//cbindgen:rust_srcs"],
+    crate_type = "staticlib",
+    deps = [
+        "@examples//cbindgen/examples_cc/raze:libc",
+    ],
+)
+
+rust_cbindgen_library(
+    name = "rust_cbindgen_staticlib",
+    lang = "c++",
+    lib = ":rust_staticlib",
+)
+
+cc_test(
+    name = "cbindgen_cc_staticlib_test",
+    srcs = [generate_src(
+        lang = "cc",
+        target = "rust_cbindgen_staticlib",
+    )],
+    deps = [":rust_cbindgen_staticlib"],
+)
+
+# C static library example
+rust_cbindgen_library(
+    name = "rust_cbindgen_c_staticlib",
+    lang = "c",
+    lib = ":rust_staticlib",
+)
+
+cc_test(
+    name = "cbindgen_c_staticlib_test",
+    srcs = [generate_src(
+        lang = "c",
+        target = "rust_cbindgen_c_staticlib",
+    )],
+    deps = [":rust_cbindgen_c_staticlib"],
+)
+
+# C++ cdylib library example
+rust_library(
+    name = "rust_cdylib",
+    srcs = ["@examples//cbindgen:rust_srcs"],
+    crate_type = "cdylib",
+    deps = [
+        "@examples//cbindgen/examples_cc/raze:libc",
+    ],
+)
+
+rust_cbindgen_library(
+    name = "rust_cbindgen_cdylib",
+    lang = "c++",
+    lib = ":rust_cdylib",
+)
+
+cc_test(
+    name = "cbindgen_cc_cdyliblib_test",
+    srcs = [generate_src(
+        lang = "cc",
+        target = "rust_cbindgen_cdylib",
+    )],
+    # TODO: Fix linker errors on Windows and remove
+    # this tag and the relevent entries `presubmit.yml`
+    tags = ["manual"],
+    deps = [":rust_cbindgen_cdylib"],
+)
+
+# C++ static lib with custom config
+rust_cbindgen_library(
+    name = "customized_cbindgen_lib",
+    config = ":cbindgen_example_config.toml",
+    lang = "c++",
+    lib = ":rust_staticlib",
+    substitutions = {
+        "{target_name}": "cbindgen_example",
+    },
+)
+
+cc_test(
+    name = "customized_cbindgen_cc_test",
+    srcs = [generate_src(
+        lang = "cc",
+        namespace = "cbindgen_example",
+        target = "customized_cbindgen_lib",
+    )],
+    deps = [":customized_cbindgen_lib"],
+)
+
+# C++ example that has transitive `#[repr(C)]` source
+rust_library(
+    name = "rust_rlib",
+    srcs = ["@examples//cbindgen:rust_srcs"],
+    deps = [
+        "@examples//cbindgen/examples_cc/raze:libc",
+    ],
+)
+
+rust_library(
+    name = "transitive_repr_c_lib",
+    srcs = ["transitive_repr_c.rs"],
+    crate_type = "staticlib",
+    edition = "2018",
+    deps = [
+        ":rust_rlib",
+    ],
+)
+
+rust_cbindgen_library(
+    name = "transitive_repr_c_cbindgen",
+    # Note that detecting what symbols to include in a header
+    # file does not work off of a crates extern/use crates
+    # declared in source. To include transitive symbols, a
+    # custom config must be created until this feature is
+    # implemented: https://github.com/eqrion/cbindgen/issues/7
+    config = "transitive_repr_c.config.toml",
+    lang = "c++",
+    lib = ":transitive_repr_c_lib",
+)
+
+cc_test(
+    name = "transitive_repr_c_test",
+    srcs = [generate_src(
+        lang = "cc",
+        target = "transitive_repr_c_cbindgen",
+    )],
+    deps = [":transitive_repr_c_cbindgen"],
+)
+
+# Create a custom toolchan for an older version of cbindgen
+rust_cbindgen_toolchain(
+    name = "cbindgen_toolchain_impl",
+    cbindgen = "@examples//cbindgen/examples_cc/raze:cargo_bin_cbindgen",
+)
+
+toolchain(
+    name = "cbindgen_toolchain",
+    toolchain = "cbindgen_toolchain_impl",
+    toolchain_type = "@io_bazel_rules_rust//cbindgen:cbindgen_toolchain",
+)

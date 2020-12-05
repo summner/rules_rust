@@ -15,6 +15,7 @@ bzl_library(
         "@io_bazel_rules_rust//:rules",
         "@io_bazel_rules_rust//bindgen:rules",
         "@io_bazel_rules_rust//cargo:rules",
+        "@io_bazel_rules_rust//cbindgen:rules",
         "@io_bazel_rules_rust//proto:rules",
         "@io_bazel_rules_rust//rust:rules",
         "@io_bazel_rules_rust//wasm_bindgen:rules",
@@ -46,6 +47,9 @@ PAGES = {
         "rust_bindgen_toolchain",
         "rust_bindgen_library",
         "rust_bindgen",
+    ],
+    "rust_cbindgen": [
+        "rust_cbindgen_library",
     ],
     "rust_wasm_bindgen": [
         # This cannot be included due to https://github.com/google/cargo-raze/issues/285

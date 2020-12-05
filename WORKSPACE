@@ -12,6 +12,10 @@ load("@io_bazel_rules_rust//bindgen:repositories.bzl", "rust_bindgen_repositorie
 
 rust_bindgen_repositories()
 
+load("@io_bazel_rules_rust//cbindgen:repositories.bzl", "rust_cbindgen_repositories")
+
+rust_cbindgen_repositories()
+
 load("@io_bazel_rules_rust//wasm_bindgen:repositories.bzl", "rust_wasm_bindgen_repositories")
 
 rust_wasm_bindgen_repositories()

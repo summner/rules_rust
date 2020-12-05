@@ -1,0 +1,26 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//cbindgen:toolchain.bzl", "rust_cbindgen_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "private/cbindgen.toml.template",
+])
+
+toolchain_type(name = "cbindgen_toolchain")
+
+bzl_library(
+    name = "rules",
+    srcs = glob(["**/*.bzl"]),
+)
+
+rust_cbindgen_toolchain(
+    name = "default_cbindgen_toolchain_impl",
+    cbindgen = "//cbindgen/raze:cargo_bin_cbindgen",
+)
+
+toolchain(
+    name = "default_cbindgen_toolchain",
+    toolchain = "default_cbindgen_toolchain_impl",
+    toolchain_type = "@io_bazel_rules_rust//cbindgen:cbindgen_toolchain",
+)

@@ -1,0 +1,19 @@
+[package]
+name = "rules_rust_cbindgen"
+version = "0.0.1"
+
+[lib]
+# This file does not exist and is only specified to satisfy a requirement of `cargo raze`
+path = "rules_rust_cbindgen.rs"
+
+[dependencies]
+cbindgen = "0.15.0"
+
+[package.metadata.raze]
+workspace_path = "//cbindgen/raze"
+genmode = "Remote"
+gen_workspace_prefix = "rules_rust_cbindgen"
+default_gen_buildrs = true
+
+[package.metadata.raze.crates.cbindgen.'0.15.0']
+extra_aliased_targets = ["cargo_bin_cbindgen"]

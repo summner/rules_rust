@@ -1,0 +1,42 @@
+"""
+@generated
+cargo-raze generated Bazel file.
+
+DO NOT EDIT! Replaced on runs of cargo-raze
+"""
+
+package(default_visibility = ["//visibility:public"])
+
+licenses([
+    "notice",  # See individual crates for specific licenses
+])
+
+# Aliased targets
+alias(
+    name = "cbindgen",
+    actual = "@cbindgen_cc_examples__cbindgen__0_13_2//:cbindgen",
+    tags = [
+        "cargo-raze",
+        "manual",
+    ],
+)
+
+alias(
+    # Extra aliased target, from raze configuration
+    # N.B.: The exact form of this is subject to change.
+    name = "cargo_bin_cbindgen",
+    actual = "@cbindgen_cc_examples__cbindgen__0_13_2//:cargo_bin_cbindgen",
+    tags = [
+        "cargo-raze",
+        "manual",
+    ],
+)
+
+alias(
+    name = "libc",
+    actual = "@cbindgen_cc_examples__libc__0_2_80//:libc",
+    tags = [
+        "cargo-raze",
+        "manual",
+    ],
+)

@@ -1,0 +1,46 @@
+# Copyright 2015 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Example of `rust_cbindgen_library` rule with a python test binary"""
+
+load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library")
+load("@io_bazel_rules_rust//cbindgen:cbindgen.bzl", "rust_cbindgen_library")
+load("@rules_python//python:python.bzl", "py_test")
+
+rust_library(
+    name = "cbindgen_example_lib",
+    srcs = ["@examples//cbindgen:rust_srcs"],
+    crate_type = "cdylib",
+)
+
+rust_cbindgen_library(
+    name = "cbindgen_example",
+    lang = "c",
+    lib = ":cbindgen_example_lib",
+)
+
+py_test(
+    name = "cbindgen_example_test",
+    srcs = [
+        "cbindgen_example.py",
+    ],
+    args = ["$(locations :cbindgen_example)"],
+    data = [
+        ":cbindgen_example",
+    ],
+    main = "cbindgen_example.py",
+    # TODO: Fix FileNotFound assert on Windows and remove
+    # this tag and the relevent entries `presubmit.yml`
+    tags = ["manual"],
+)
