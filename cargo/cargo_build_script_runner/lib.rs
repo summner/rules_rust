@@ -15,12 +15,13 @@
 //! Parse the output of a cargo build.rs script and generate a list of flags and
 //! environment variable for the build.
 use std::io::{BufRead, BufReader, Read};
-use std::process::{Command, Stdio};
+use std::process::{Command, Output};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct CompileAndLinkFlags {
     pub compile_flags: String,
     pub link_flags: String,
+    pub link_search_paths: String,
 }
 
 /// Enum containing all the considered return value from the script
@@ -34,6 +35,8 @@ pub enum BuildScriptOutput {
     Cfg(String),
     /// cargo:rustc-flags
     Flags(String),
+    /// cargo:rustc-link-arg
+    LinkArg(String),
     /// cargo:rustc-env
     Env(String),
     /// cargo:VAR=VALUE
@@ -51,21 +54,21 @@ impl BuildScriptOutput {
         let split = line.splitn(2, '=').collect::<Vec<_>>();
         if split.len() <= 1 {
             // Not a cargo directive.
-            print!("{}", line);
             return None;
         }
         let param = split[1].trim().to_owned();
         let key_split = split[0].splitn(2, ':').collect::<Vec<_>>();
         if key_split.len() <= 1 || key_split[0] != "cargo" {
             // Not a cargo directive.
-            print!("{}", line);
             return None;
         }
+
         match key_split[1] {
             "rustc-link-lib" => Some(BuildScriptOutput::LinkLib(param)),
             "rustc-link-search" => Some(BuildScriptOutput::LinkSearch(param)),
             "rustc-cfg" => Some(BuildScriptOutput::Cfg(param)),
             "rustc-flags" => Some(BuildScriptOutput::Flags(param)),
+            "rustc-link-arg" => Some(BuildScriptOutput::LinkArg(param)),
             "rustc-env" => Some(BuildScriptOutput::Env(param)),
             "rerun-if-changed" | "rerun-if-env-changed" =>
             // Ignored because Bazel will re-run if those change all the time.
@@ -73,12 +76,14 @@ impl BuildScriptOutput {
                 None
             }
             "warning" => {
-                eprintln!("Build Script Warning: {}", split[1]);
+                eprint!("Build Script Warning: {}", split[1]);
                 None
             }
-            "rustc-cdylib-link-arg" => {
+            "rustc-cdylib-link-arg" | "rustc-link-arg-bin" | "rustc-link-arg-bins" => {
                 // cargo:rustc-cdylib-link-arg=FLAG — Passes custom flags to a linker for cdylib crates.
-                eprintln!(
+                // cargo:rustc-link-arg-bin=BIN=FLAG – Passes custom flags to a linker for the binary BIN.
+                // cargo:rustc-link-arg-bins=FLAG – Passes custom flags to a linker for binaries.
+                eprint!(
                     "Warning: build script returned unsupported directive `{}`",
                     split[0]
                 );
@@ -96,7 +101,7 @@ impl BuildScriptOutput {
     }
 
     /// Converts a [BufReader] into a vector of [BuildScriptOutput] enums.
-    fn from_reader<T: Read>(mut reader: BufReader<T>) -> Vec<BuildScriptOutput> {
+    fn outputs_from_reader<T: Read>(mut reader: BufReader<T>) -> Vec<BuildScriptOutput> {
         let mut result = Vec::<BuildScriptOutput>::new();
         let mut line = String::new();
         while reader.read_line(&mut line).expect("Cannot read line") != 0 {
@@ -109,27 +114,28 @@ impl BuildScriptOutput {
     }
 
     /// Take a [Command], execute it and converts its input into a vector of [BuildScriptOutput]
-    pub fn from_command(cmd: &mut Command) -> Result<Vec<BuildScriptOutput>, Option<i32>> {
-        let mut child = cmd
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("Unable to start binary");
-        let reader = BufReader::new(child.stdout.as_mut().expect("Failed to open stdout"));
-        let output = Self::from_reader(reader);
-        let ecode = child.wait().expect("failed to wait on child");
-        if ecode.success() {
-            Ok(output)
+    pub fn outputs_from_command(
+        cmd: &mut Command,
+    ) -> Result<(Vec<BuildScriptOutput>, Output), Output> {
+        let child_output = cmd.output().expect("Unable to start binary");
+        if child_output.status.success() {
+            let reader = BufReader::new(child_output.stdout.as_slice());
+            let output = Self::outputs_from_reader(reader);
+            Ok((output, child_output))
         } else {
-            Err(ecode.code())
+            Err(child_output)
         }
     }
 
     /// Convert a vector of [BuildScriptOutput] into a list of environment variables.
-    pub fn to_env(v: &Vec<BuildScriptOutput>, exec_root: &str) -> String {
-        v.iter()
+    pub fn outputs_to_env(outputs: &[BuildScriptOutput], exec_root: &str) -> String {
+        outputs
+            .iter()
             .filter_map(|x| {
                 if let BuildScriptOutput::Env(env) = x {
-                    Some(Self::redact_exec_root(env, exec_root))
+                    Some(Self::escape_for_serializing(Self::redact_exec_root(
+                        env, exec_root,
+                    )))
                 } else {
                     None
                 }
@@ -139,12 +145,21 @@ impl BuildScriptOutput {
     }
 
     /// Convert a vector of [BuildScriptOutput] into a list of dependencies environment variables.
-    pub fn to_dep_env(v: &Vec<BuildScriptOutput>, crate_links: &str, exec_root: &str) -> String {
-        let prefix = format!("DEP_{}_", crate_links.replace("-", "_").to_uppercase());
-        v.iter()
+    pub fn outputs_to_dep_env(
+        outputs: &[BuildScriptOutput],
+        crate_links: &str,
+        exec_root: &str,
+    ) -> String {
+        let prefix = format!("DEP_{}_", crate_links.replace('-', "_").to_uppercase());
+        outputs
+            .iter()
             .filter_map(|x| {
                 if let BuildScriptOutput::DepEnv(env) = x {
-                    Some(format!("{}{}", prefix, Self::redact_exec_root(env, exec_root)))
+                    Some(format!(
+                        "{}{}",
+                        prefix,
+                        Self::escape_for_serializing(Self::redact_exec_root(env, exec_root))
+                    ))
                 } else {
                     None
                 }
@@ -154,27 +169,44 @@ impl BuildScriptOutput {
     }
 
     /// Convert a vector of [BuildScriptOutput] into a flagfile.
-    pub fn to_flags(v: &Vec<BuildScriptOutput>, exec_root: &str) -> CompileAndLinkFlags {
+    pub fn outputs_to_flags(outputs: &[BuildScriptOutput], exec_root: &str) -> CompileAndLinkFlags {
         let mut compile_flags = Vec::new();
         let mut link_flags = Vec::new();
+        let mut link_search_paths = Vec::new();
 
-        for flag in v {
+        for flag in outputs {
             match flag {
                 BuildScriptOutput::Cfg(e) => compile_flags.push(format!("--cfg={}", e)),
                 BuildScriptOutput::Flags(e) => compile_flags.push(e.to_owned()),
+                BuildScriptOutput::LinkArg(e) => compile_flags.push(format!("-Clink-arg={}", e)),
                 BuildScriptOutput::LinkLib(e) => link_flags.push(format!("-l{}", e)),
-                BuildScriptOutput::LinkSearch(e) => link_flags.push(format!("-L{}", e)),
+                BuildScriptOutput::LinkSearch(e) => link_search_paths.push(format!("-L{}", e)),
                 _ => {}
             }
         }
+
         CompileAndLinkFlags {
             compile_flags: compile_flags.join("\n"),
             link_flags: Self::redact_exec_root(&link_flags.join("\n"), exec_root),
+            link_search_paths: Self::redact_exec_root(&link_search_paths.join("\n"), exec_root),
         }
     }
 
     fn redact_exec_root(value: &str, exec_root: &str) -> String {
         value.replace(exec_root, "${pwd}")
+    }
+
+    // The process-wrapper treats trailing backslashes as escapes for following newlines.
+    // If the env var ends with a backslash (and accordingly doesn't have a following newline),
+    // escape it so that it doesn't get turned into a newline by the process-wrapper.
+    //
+    // Note that this code doesn't handle newlines in strings - that's because Cargo treats build
+    // script output as single-line-oriented, so stops processing at the end of a line regardless.
+    fn escape_for_serializing(mut value: String) -> String {
+        if value.ends_with('\\') {
+            value.push('\\');
+        }
+        value
     }
 }
 
@@ -198,11 +230,13 @@ cargo:version=123
 cargo:version_number=1010107f
 cargo:include_path=/some/absolute/path/include
 cargo:rustc-env=SOME_PATH=/some/absolute/path/beep
+cargo:rustc-link-arg=-weak_framework
+cargo:rustc-link-arg=Metal
 ",
         );
         let reader = BufReader::new(buff);
-        let result = BuildScriptOutput::from_reader(reader);
-        assert_eq!(result.len(), 10);
+        let result = BuildScriptOutput::outputs_from_reader(reader);
+        assert_eq!(result.len(), 12);
         assert_eq!(result[0], BuildScriptOutput::LinkLib("sdfsdf".to_owned()));
         assert_eq!(result[1], BuildScriptOutput::Env("FOO=BAR".to_owned()));
         assert_eq!(
@@ -227,22 +261,30 @@ cargo:rustc-env=SOME_PATH=/some/absolute/path/beep
             result[9],
             BuildScriptOutput::Env("SOME_PATH=/some/absolute/path/beep".to_owned())
         );
+        assert_eq!(
+            result[10],
+            BuildScriptOutput::LinkArg("-weak_framework".to_owned())
+        );
+        assert_eq!(result[11], BuildScriptOutput::LinkArg("Metal".to_owned()));
 
         assert_eq!(
-            BuildScriptOutput::to_dep_env(&result, "ssh2", "/some/absolute/path"),
+            BuildScriptOutput::outputs_to_dep_env(&result, "ssh2", "/some/absolute/path"),
             "DEP_SSH2_VERSION=123\nDEP_SSH2_VERSION_NUMBER=1010107f\nDEP_SSH2_INCLUDE_PATH=${pwd}/include".to_owned()
         );
         assert_eq!(
-            BuildScriptOutput::to_env(&result, "/some/absolute/path"),
+            BuildScriptOutput::outputs_to_env(&result, "/some/absolute/path"),
             "FOO=BAR\nBAR=FOO\nSOME_PATH=${pwd}/beep".to_owned()
         );
         assert_eq!(
-            BuildScriptOutput::to_flags(&result, "/some/absolute/path"),
+            BuildScriptOutput::outputs_to_flags(&result, "/some/absolute/path"),
             CompileAndLinkFlags {
                 // -Lblah was output as a rustc-flags, so even though it probably _should_ be a link
                 // flag, we don't treat it like one.
-                compile_flags: "-Lblah\n--cfg=feature=awesome".to_owned(),
-                link_flags: "-lsdfsdf\n-L${pwd}/bleh".to_owned(),
+                compile_flags:
+                    "-Lblah\n--cfg=feature=awesome\n-Clink-arg=-weak_framework\n-Clink-arg=Metal"
+                        .to_owned(),
+                link_flags: "-lsdfsdf".to_owned(),
+                link_search_paths: "-L${pwd}/bleh".to_owned(),
             }
         );
     }

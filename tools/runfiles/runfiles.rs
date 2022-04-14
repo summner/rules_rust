@@ -8,12 +8,12 @@
 //!           name = "my_binary",
 //!           ...
 //!           data = ["//path/to/my/data.txt"],
-//!           deps = ["@io_bazel_rules_rust//tools/runfiles"],
+//!           deps = ["@rules_rust//tools/runfiles"],
 //!       )
 //!     ```
 //!
 //! 2.  Import the runfiles library.
-//!     ```
+//!     ```ignore
 //!     extern crate runfiles;
 //!
 //!     use runfiles::Runfiles;
@@ -31,23 +31,57 @@
 //!     // ...
 //!     ```
 
+use std::collections::HashMap;
 use std::env;
+use std::ffi::OsString;
 use std::fs;
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
 
+#[derive(Debug)]
+enum Mode {
+    DirectoryBased(PathBuf),
+    ManifestBased(HashMap<PathBuf, PathBuf>),
+}
+
+#[derive(Debug)]
 pub struct Runfiles {
-    runfiles_dir: PathBuf,
+    mode: Mode,
 }
 
 impl Runfiles {
-    /// Creates a directory based Runfiles object.
-    ///
-    /// Manifest based creation is not currently supported.
+    /// Creates a manifest based Runfiles object when
+    /// RUNFILES_MANIFEST_ONLY environment variable is present,
+    /// or a directory based Runfiles object otherwise.
     pub fn create() -> io::Result<Self> {
+        if is_manifest_only() {
+            Self::create_manifest_based()
+        } else {
+            Self::create_directory_based()
+        }
+    }
+
+    fn create_directory_based() -> io::Result<Self> {
         Ok(Runfiles {
-            runfiles_dir: find_runfiles_dir()?,
+            mode: Mode::DirectoryBased(find_runfiles_dir()?),
+        })
+    }
+
+    fn create_manifest_based() -> io::Result<Self> {
+        let manifest_path = find_manifest_path()?;
+        let manifest_content = std::fs::read_to_string(manifest_path)?;
+        let path_mapping = manifest_content
+            .lines()
+            .map(|line| {
+                let pair = line
+                    .split_once(' ')
+                    .expect("manifest file contained unexpected content");
+                (pair.0.into(), pair.1.into())
+            })
+            .collect::<HashMap<_, _>>();
+        Ok(Runfiles {
+            mode: Mode::ManifestBased(path_mapping),
         })
     }
 
@@ -61,13 +95,34 @@ impl Runfiles {
         if path.is_absolute() {
             return path.to_path_buf();
         }
-        self.runfiles_dir.join(path)
+        match &self.mode {
+            Mode::DirectoryBased(runfiles_dir) => runfiles_dir.join(path),
+            Mode::ManifestBased(path_mapping) => path_mapping
+                .get(path)
+                .unwrap_or_else(|| {
+                    panic!("Path {} not found among runfiles.", path.to_string_lossy())
+                })
+                .clone(),
+        }
     }
 }
 
 /// Returns the .runfiles directory for the currently executing binary.
-fn find_runfiles_dir() -> io::Result<PathBuf> {
-    let exec_path = std::env::args().nth(0).expect("arg 0 was not set");
+pub fn find_runfiles_dir() -> io::Result<PathBuf> {
+    assert_ne!(
+        std::env::var_os("RUNFILES_MANIFEST_ONLY").unwrap_or_else(|| OsString::from("0")),
+        "1"
+    );
+
+    // If bazel told us about the runfiles dir, use that without looking further.
+    if let Some(test_srcdir) = std::env::var_os("TEST_SRCDIR").map(PathBuf::from) {
+        if test_srcdir.is_dir() {
+            return Ok(test_srcdir);
+        }
+    }
+
+    // Consume the first argument (argv[0])
+    let exec_path = std::env::args().next().expect("arg 0 was not set");
 
     let mut binary_path = PathBuf::from(&exec_path);
     loop {
@@ -108,10 +163,31 @@ fn find_runfiles_dir() -> io::Result<PathBuf> {
         }
     }
 
-    Err(io::Error::new(
-        io::ErrorKind::Other,
-        "Failed to find .runfiles directory.",
-    ))
+    Err(make_io_error("failed to find .runfiles directory"))
+}
+
+fn make_io_error(msg: &str) -> io::Error {
+    io::Error::new(io::ErrorKind::Other, msg)
+}
+
+fn is_manifest_only() -> bool {
+    match std::env::var("RUNFILES_MANIFEST_ONLY") {
+        Ok(val) => val == "1",
+        Err(_) => false,
+    }
+}
+
+fn find_manifest_path() -> io::Result<PathBuf> {
+    assert_eq!(
+        std::env::var_os("RUNFILES_MANIFEST_ONLY").expect("RUNFILES_MANIFEST_ONLY was not set"),
+        OsString::from("1")
+    );
+    match std::env::var_os("RUNFILES_MANIFEST_FILE") {
+        Some(path) => Ok(path.into()),
+        None => Err(
+            make_io_error(
+                "RUNFILES_MANIFEST_ONLY was set to '1', but RUNFILES_MANIFEST_FILE was not set. Did Bazel change?"))
+    }
 }
 
 #[cfg(test)]
@@ -123,14 +199,52 @@ mod test {
 
     #[test]
     fn test_can_read_data_from_runfiles() {
-        let r = Runfiles::create().unwrap();
+        // We want to run two test cases: one with the $TEST_SRCDIR environment variable set and one
+        // with it not set. Since environment variables are global state, we need to ensure the two
+        // test cases do not run concurrently. Rust runs tests in parallel and does not provide an
+        // easy way to synchronise them, so we run both test cases in the same #[test] function.
 
-        let mut f =
-            File::open(r.rlocation("io_bazel_rules_rust/tools/runfiles/data/sample.txt")).unwrap();
+        let test_srcdir = env::var_os("TEST_SRCDIR").expect("bazel did not provide TEST_SRCDIR");
 
-        let mut buffer = String::new();
-        f.read_to_string(&mut buffer).unwrap();
+        // Test case 1: $TEST_SRCDIR is set.
+        {
+            let r = Runfiles::create().unwrap();
 
-        assert_eq!("Example Text!", buffer);
+            let mut f =
+                File::open(r.rlocation("rules_rust/tools/runfiles/data/sample.txt")).unwrap();
+
+            let mut buffer = String::new();
+            f.read_to_string(&mut buffer).unwrap();
+
+            assert_eq!("Example Text!", buffer);
+        }
+
+        // Test case 2: $TEST_SRCDIR is *not* set.
+        {
+            env::remove_var("TEST_SRCDIR");
+
+            let r = Runfiles::create().unwrap();
+
+            let mut f =
+                File::open(r.rlocation("rules_rust/tools/runfiles/data/sample.txt")).unwrap();
+
+            let mut buffer = String::new();
+            f.read_to_string(&mut buffer).unwrap();
+
+            assert_eq!("Example Text!", buffer);
+
+            env::set_var("TEST_SRCDIR", test_srcdir);
+        }
+    }
+
+    #[test]
+    fn test_manifest_based_can_read_data_from_runfiles() {
+        let mut path_mapping = HashMap::new();
+        path_mapping.insert("a/b".into(), "c/d".into());
+        let r = Runfiles {
+            mode: Mode::ManifestBased(path_mapping),
+        };
+
+        assert_eq!(r.rlocation("a/b"), PathBuf::from("c/d"));
     }
 }

@@ -1,111 +1,335 @@
 ---
+aspects_flags: &aspects_flags
+  - "--config=rustfmt"
+  - "--config=clippy"
 default_linux_targets: &default_linux_targets
-- "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
-- "..."
-- "@examples//..."
-# TODO: Fix Windows errors related to these targets and remove this and manual tag.
-- "@examples//cbindgen/examples_cc:cbindgen_cc_cdyliblib_test"
-- "@examples//cbindgen/examples_py:cbindgen_example_test"
-# TODO: Switch manual tag to platform constraint after bazel 4.0.
-- "//test/versioned_dylib:versioned_dylib_test"
-# Bindgen currently only has a working toolchain for 18.04
-- "-@examples//ffi/rust_calling_c/simple/..."
+  - "//..."
+  # TODO: Switch manual tag to platform constraint after bazel 4.0.
+  - "//test/versioned_dylib:versioned_dylib_test"
+default_macos_targets: &default_macos_targets
+  - "//..."
+default_windows_targets: &default_windows_targets
+  - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
+  - "//..."
+  - "-//bindgen/..."
+  - "-//test/proto/..."
+  - "-//tools/rust_analyzer/..."
+  - "-//test/rustfmt/..."
+crate_universe_vendor_example_targets: &crate_universe_vendor_example_targets
+  - "//vendor_local_manifests:crates_vendor"
+  - "//vendor_local_pkgs:crates_vendor"
+  - "//vendor_remote_manifests:crates_vendor_manifests"
+  - "//vendor_remote_pkgs:crates_vendor_pkgs"
 tasks:
-  ubuntu1604:
-    build_targets: *default_linux_targets
-    test_targets: *default_linux_targets
-  ubuntu1804:
-    build_targets: *default_linux_targets
-    test_targets:
-      - "..."
-      - "@examples//..."
-      # TODO: Switch manual tag to platform constraint after bazel 4.0.
-      - "//test/versioned_dylib:versioned_dylib_test"
-      # TODO: Fix Windows errors related to these targets and remove this and manual tag.
-      - "@examples//cbindgen/examples_cc:cbindgen_cc_cdyliblib_test"
-      - "@examples//cbindgen/examples_py:cbindgen_example_test"
   ubuntu2004:
-    name: "Minimum Supported Version"
-    bazel: "3.0.0"
     build_targets: *default_linux_targets
     test_targets: *default_linux_targets
-  macos:
-    osx_targets: &osx_targets
-    - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
-    - "..."
-    - "@examples//..."
-    # TODO: Fix Windows errors related to these targets and remove this and manual tag.
-    - "@examples//cbindgen/examples_cc:cbindgen_cc_cdyliblib_test"
-    - "@examples//cbindgen/examples_py:cbindgen_example_test"
-    # Skip tests for dylib support on osx, since we don't support it yet.
-    - "-@examples//ffi/rust_calling_c:matrix_dylib_test"
-    - "-@examples//ffi/rust_calling_c:matrix_dynamically_linked"
-    - "-@examples//ffi/rust_calling_c/simple/..."
-    build_targets: *osx_targets
-    test_targets: *osx_targets
   rbe_ubuntu1604:
+    shell_commands:
+      - sed -i 's/^# load("@bazelci_rules/load("@bazelci_rules/' WORKSPACE.bazel
+      - sed -i 's/^# rbe_preconfig/rbe_preconfig/' WORKSPACE.bazel
+    build_targets:
+      - "//..."
     test_targets:
-    - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
-    - "//test/..."
-    - "@examples//..."
-    - "-//test/conflicting_deps:conflicting_deps_test"
-    # rust_doc_test is likely not fully sandboxed
-    - "-//test/chained_direct_deps:mod3_doc_test"
-    - "-@examples//fibonacci:fibonacci_doc_test"
-    - "-@examples//hello_lib:hello_lib_doc_test"
-    - "-//tools/runfiles:runfiles_doc_test"
-    - "-@examples//ffi/rust_calling_c/simple/..."
-    # See https://github.com/bazelbuild/bazel/issues/9987
-    - "-@examples//ffi/rust_calling_c:matrix_dylib_test"
-    # TODO: Fix Windows errors related to these targets and remove this and manual tag.
-    - "@examples//cbindgen/examples_cc:cbindgen_cc_cdyliblib_test"
-    - "@examples//cbindgen/examples_py:cbindgen_example_test"
+      - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
+      - "//..."
+      - "//test/..."
+      - "-//test/conflicting_deps:conflicting_deps_test"
+  macos:
+    build_targets: *default_macos_targets
+    test_targets: *default_macos_targets
+    build_flags: *aspects_flags
   windows:
     build_flags:
-    - "--enable_runfiles" # this is not enabled by default on windows and is necessary for the cargo build scripts
-    windows_targets: &windows_targets
-    - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
-    - "@examples//..."
-    - "-@examples//ffi/rust_calling_c:matrix_dylib_test"
-    - "-@examples//ffi/rust_calling_c:matrix_dynamically_linked"
-    - "-@examples//ffi/rust_calling_c/simple/..."
-    - "-@examples//hello_sys/..."
-    - "-@examples//complex_sys/..."
-    - "-@examples//proto/..."
-    - "-@examples//wasm/..."
-    build_targets: *windows_targets
-    test_targets: *windows_targets
-  examples:
-    name: Examples
-    platform: ubuntu1804
-    working_directory: examples
+      - "--enable_runfiles" # this is not enabled by default on windows and is necessary for the cargo build scripts
+      - "--config=rustfmt"
+      - "--config=clippy"
+    build_targets: *default_windows_targets
+    test_targets: *default_windows_targets
+  ubuntu2004_with_aspects:
+    name: With Aspects
+    platform: ubuntu2004
+    build_targets: *default_linux_targets
+    test_targets: *default_linux_targets
+    build_flags: *aspects_flags
+  rbe_ubuntu1604_with_aspects:
+    name: With Aspects
+    platform: rbe_ubuntu1604
+    shell_commands:
+      - sed -i 's/^# load("@bazelci_rules/load("@bazelci_rules/' WORKSPACE.bazel
+      - sed -i 's/^# rbe_preconfig/rbe_preconfig/' WORKSPACE.bazel
+    build_targets: *default_linux_targets
     test_targets:
-    - //...
-  docs_linux:
-    name: Docs
-    platform: ubuntu1804
-    working_directory: docs
-    build_targets:
-    - //...
-  docs_macos:
-    name: Docs
+      - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
+      - "..."
+      - "//test/..."
+      - "-//test/conflicting_deps:conflicting_deps_test"
+    build_flags: *aspects_flags
+  rbe_ubuntu1604_rolling_with_aspects:
+    name: RBE Rolling Bazel Version With Aspects
+    platform: rbe_ubuntu1604
+    shell_commands:
+      - sed -i 's/^# load("@bazelci_rules/load("@bazelci_rules/' WORKSPACE.bazel
+      - sed -i 's/^# rbe_preconfig/rbe_preconfig/' WORKSPACE.bazel
+    build_targets: *default_linux_targets
+    test_targets:
+      - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
+      - "..."
+      - "//test/..."
+      - "-//test/conflicting_deps:conflicting_deps_test"
+    build_flags: *aspects_flags
+    soft_fail: yes
+    bazel: "rolling"
+  macos_with_aspects:
+    name: With Aspects
     platform: macos
+    build_targets: *default_macos_targets
+    test_targets: *default_macos_targets
+    build_flags: *aspects_flags
+  macos_rolling_with_aspects:
+    name: "Macos Rolling Bazel Version With Aspects"
+    platform: macos
+    build_targets: *default_macos_targets
+    test_targets: *default_macos_targets
+    build_flags: *aspects_flags
+    soft_fail: yes
+    bazel: "rolling"
+  windows_with_aspects:
+    name: With Aspects
+    platform: windows
+    build_flags:
+      - "--enable_runfiles" # this is not enabled by default on windows and is necessary for the cargo build scripts
+      - "--config=rustfmt"
+      - "--config=clippy"
+    build_targets: *default_windows_targets
+    test_targets: *default_windows_targets
+  windows_rolling_with_aspects:
+    name: "Windows Rolling Bazel Version With Aspects"
+    platform: windows
+    build_flags:
+      - "--enable_runfiles" # this is not enabled by default on windows and is necessary for the cargo build scripts
+      - "--config=rustfmt"
+      - "--config=clippy"
+    build_targets: *default_windows_targets
+    test_targets: *default_windows_targets
+    soft_fail: yes
+    bazel: "rolling"
+  ubuntu2004_clang:
+    name: With Clang
+    platform: ubuntu2004
+    build_flags:
+      - "--config=rustfmt"
+      - "--config=clippy"
+      - "--repo_env=CC=clang"
+    build_targets: *default_linux_targets
+    test_targets: *default_linux_targets
+  ubuntu2004_clang_lld:
+    name: With Clang and LLD
+    platform: ubuntu2004
+    shell_commands:
+      - "sudo apt -y update && sudo apt -y install lld"
+    build_flags:
+      - "--config=rustfmt"
+      - "--config=clippy"
+      - "--repo_env=CC=clang"
+      - "--linkopt=-fuse-ld=lld"
+    build_targets: *default_linux_targets
+    test_targets: *default_linux_targets
+  ubuntu2004_rolling_clang:
+    name: Rolling Bazel Version With Clang
+    platform: ubuntu2004
+    build_flags:
+      - "--config=rustfmt"
+      - "--config=clippy"
+      - "--repo_env=CC=clang"
+    build_targets: *default_linux_targets
+    test_targets: *default_linux_targets
+    soft_fail: yes
+    bazel: "rolling"
+  ubuntu1804:
+    name: "Min Bazel Version"
+    bazel: "4.0.0"
+    platform: ubuntu1804
+    build_targets: *default_linux_targets
+    test_targets: *default_linux_targets
+  ubuntu1804_with_aspects:
+    name: "Min Bazel Version With Aspects"
+    bazel: "4.0.0"
+    platform: ubuntu1804
+    build_targets: *default_linux_targets
+    test_targets: *default_linux_targets
+    build_flags: *aspects_flags
+  ubuntu2004_rolling_with_aspects:
+    name: "Rolling Bazel Version With Aspects"
+    bazel: "rolling"
+    platform: ubuntu2004
+    soft_fail: yes
+    build_targets: *default_linux_targets
+    test_targets: *default_linux_targets
+    build_flags: *aspects_flags
+  linux_docs:
+    name: Docs
+    platform: ubuntu2004
     working_directory: docs
     build_targets:
-    - //...
-  clippy_examples:
-    name: Clippy on Examples
-    platform: ubuntu1804
-    working_directory: examples
-    build_flags:
-    - "--aspects=@io_bazel_rules_rust//rust:rust.bzl%rust_clippy_aspect"
-    - "--output_groups=clippy_checks"
-    build_targets:
-    - //...
+      - //...
+    run_targets:
+      - "//:test_docs"
   clippy_failure:
     name: Negative Clippy Tests
-    platform: ubuntu1804
+    platform: ubuntu2004
+    run_targets:
+      - "//test/clippy:clippy_failure_test"
+  rustfmt_failure:
+    name: Negative Rustfmt Tests
+    platform: ubuntu2004
+    run_targets:
+      - "//test/rustfmt:test_runner"
+  rust_analyzer_tests:
+    name: Rust-Analyzer Tests
+    platform: ubuntu2004
+    run_targets:
+      - "//test/rust_analyzer:rust_analyzer_test"
+  ubuntu2004_examples:
+    name: Examples
+    platform: ubuntu2004
+    working_directory: examples
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+    build_flags: *aspects_flags
+  ubuntu2004_examples_clang:
+    name: Examples with Clang
+    platform: ubuntu2004
+    working_directory: examples
+    build_flags:
+      - "--repo_env=CC=clang"
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+    build_flags: *aspects_flags
+  ubuntu2004_examples_clang_lld:
+    name: Examples with Clang and LLD
+    platform: ubuntu2004
     shell_commands:
-    - ./test/clippy/clippy_failure_test.sh
-
-buildifier: latest
+      - "sudo apt -y update && sudo apt -y install lld"
+    working_directory: examples
+    build_flags:
+      - "--repo_env=CC=clang"
+      - "--linkopt=-fuse-ld=lld"
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+    build_flags: *aspects_flags
+  ubuntu2004_examples_rolling:
+    name: "Examples with Rolling Bazel Version"
+    platform: ubuntu2004
+    working_directory: examples
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+    build_flags: *aspects_flags
+    soft_fail: yes
+  rbe_ubuntu1604_examples:
+    name: Examples
+    platform: rbe_ubuntu1604
+    working_directory: examples
+    rbe_examples_targets: &rbe_examples_targets
+      - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
+      - "//..."
+      # TODO: This requires an updated `rules_foreign_cc`
+      - "-//sys/..."
+      # See https://github.com/bazelbuild/bazel/issues/9987
+      - "-//ffi/rust_calling_c:matrix_dylib_test"
+      # The bindgen rules currently do not work on RBE
+      # see: https://github.com/bazelbuild/rules_rust/issues/919
+      - "-//bindgen/..."
+    shell_commands:
+      - sed -i 's/^# load("@bazelci_rules/load("@bazelci_rules/' WORKSPACE.bazel
+      - sed -i 's/^# rbe_preconfig/rbe_preconfig/' WORKSPACE.bazel
+    build_targets: *rbe_examples_targets
+    test_targets: *rbe_examples_targets
+    build_flags: *aspects_flags
+  macos_examples:
+    name: Examples
+    platform: macos
+    working_directory: examples
+    build_targets:
+      - "//..."
+    test_targets:
+      - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
+      - "//..."
+    build_flags: *aspects_flags
+  windows_examples:
+    name: Examples
+    platform: windows
+    working_directory: examples
+    build_flags:
+      - "--enable_runfiles" # this is not enabled by default on windows and is necessary for the cargo build scripts
+      - "--config=rustfmt"
+      - "--config=clippy"
+    windows_targets: &windows_targets
+      - "--" # Allows negative patterns; hack for https://github.com/bazelbuild/continuous-integration/pull/245
+      - "//..."
+      # The bindgen rules currently do not work on windows
+      # see: https://github.com/bazelbuild/rules_rust/issues/919
+      - "-//bindgen/..."
+      # The proto rules do not work on windows
+      - "-//proto/..."
+      # The wasm rules do not work on windows
+      - "-//wasm/..."
+    build_targets: *windows_targets
+    test_targets: *windows_targets
+  crate_universe_examples_ubuntu2004:
+    name: Crate Universe Examples
+    platform: ubuntu2004
+    working_directory: examples/crate_universe
+    run_targets: *crate_universe_vendor_example_targets
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+    build_flags: *aspects_flags
+  crate_universe_rbe_ubuntu1604:
+    name: Crate Universe Examples
+    platform: rbe_ubuntu1604
+    working_directory: examples/crate_universe
+    shell_commands:
+      - sed -i 's/^# load("@bazelci_rules/load("@bazelci_rules/' WORKSPACE.bazel
+      - sed -i 's/^# rbe_preconfig/rbe_preconfig/' WORKSPACE.bazel
+    run_targets: *crate_universe_vendor_example_targets
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+    build_flags: *aspects_flags
+  crate_universe_examples_macos:
+    name: Crate Universe Examples
+    platform: macos
+    working_directory: examples/crate_universe
+    run_targets: *crate_universe_vendor_example_targets
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+    build_flags: *aspects_flags
+  crate_universe_examples_windows:
+    name: Crate Universe Examples
+    platform: windows
+    working_directory: examples/crate_universe
+    batch_commands:
+      - echo startup --windows_enable_symlinks >> user.bazelrc
+      - echo build --enable_runfiles >> user.bazelrc  # this is not enabled by default on windows and is necessary for the cargo build scripts
+    run_targets: *crate_universe_vendor_example_targets
+    build_flags: *aspects_flags
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+buildifier:
+  version: latest
+  warnings: "all"

@@ -3,44 +3,11 @@
 load("@bazel_skylib//lib:selects.bzl", "selects")
 load(
     ":triple_mappings.bzl",
+    "SUPPORTED_PLATFORM_TRIPLES",
     "cpu_arch_to_constraints",
     "system_to_constraints",
     "triple_to_constraint_set",
 )
-
-# All T1 Platforms should be supported, but aren't, see inline notes.
-_SUPPORTED_T1_PLATFORM_TRIPLES = [
-    "i686-apple-darwin",
-    "i686-pc-windows-msvc",
-    "i686-unknown-linux-gnu",
-    "x86_64-apple-darwin",
-    "x86_64-pc-windows-msvc",
-    "x86_64-unknown-linux-gnu",
-    # N.B. These "alternative" envs are not supported, as bazel cannot distinguish between them
-    # and others using existing @platforms// config_values
-    #
-    #"i686-pc-windows-gnu",
-    #"x86_64-pc-windows-gnu",
-]
-
-# Some T2 Platforms are supported, provided we have mappings to @platforms// entries.
-# See @io_bazel_rules_rust//rust/platform:triple_mappings.bzl for the complete list.
-_SUPPORTED_T2_PLATFORM_TRIPLES = [
-    "aarch64-apple-darwin",
-    "aarch64-apple-ios",
-    "aarch64-linux-android",
-    "aarch64-unknown-linux-gnu",
-    "arm-unknown-linux-gnueabi",
-    "i686-linux-android",
-    "i686-unknown-freebsd",
-    "powerpc-unknown-linux-gnu",
-    "s390x-unknown-linux-gnu",
-    "wasm32-unknown-unknown",
-    "wasm32-wasi",
-    "x86_64-apple-ios",
-    "x86_64-linux-android",
-    "x86_64-unknown-freebsd",
-]
 
 _SUPPORTED_CPU_ARCH = [
     "aarch64",
@@ -81,7 +48,14 @@ def declare_config_settings():
         actual = ":darwin",
     )
 
-    all_supported_triples = _SUPPORTED_T1_PLATFORM_TRIPLES + _SUPPORTED_T2_PLATFORM_TRIPLES
+    # Add alias for OSX to "macos" to be consistent with the long-term
+    # direction of `@platforms` in using the OS's modern name.
+    native.alias(
+        name = "macos",
+        actual = ":darwin",
+    )
+
+    all_supported_triples = SUPPORTED_PLATFORM_TRIPLES
     for triple in all_supported_triples:
         native.config_setting(
             name = triple,
@@ -91,16 +65,16 @@ def declare_config_settings():
     native.platform(
         name = "wasm",
         constraint_values = [
-            "@io_bazel_rules_rust//rust/platform/cpu:wasm32",
-            "@io_bazel_rules_rust//rust/platform/os:unknown",
+            str(Label("//rust/platform/cpu:wasm32")),
+            str(Label("//rust/platform/os:unknown")),
         ],
     )
 
     native.platform(
         name = "wasi",
         constraint_values = [
-            "@io_bazel_rules_rust//rust/platform/cpu:wasm32",
-            "@io_bazel_rules_rust//rust/platform/os:wasi",
+            str(Label("//rust/platform/cpu:wasm32")),
+            str(Label("//rust/platform/os:wasi")),
         ],
     )
 

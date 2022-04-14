@@ -18,8 +18,25 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//proto/raze:crates.bzl", "rules_rust_proto_fetch_remote_crates")
 
 # buildifier: disable=unnamed-macro
-def rust_proto_repositories():
-    """Declare dependencies needed for proto compilation."""
+def rust_proto_repositories(register_default_toolchain = True):
+    """Declare dependencies needed for proto compilation.
+
+    Args:
+        register_default_toolchain (bool, optional): If True, the default [rust_proto_toolchain](#rust_proto_toolchain)
+            (`@rules_rust//proto:default-proto-toolchain`) is registered. This toolchain requires a set of dependencies
+            that were generated using [cargo raze](https://github.com/google/cargo-raze). These will also be loaded.
+    """
+    maybe(
+        http_archive,
+        name = "rules_proto",
+        sha256 = "66bfdf8782796239d3875d37e7de19b1d94301e8972b3cbd2446b332429b4df1",
+        strip_prefix = "rules_proto-4.0.0",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/refs/tags/4.0.0.tar.gz",
+            "https://github.com/bazelbuild/rules_proto/archive/refs/tags/4.0.0.tar.gz",
+        ],
+    )
+
     maybe(
         http_archive,
         name = "com_google_protobuf",
@@ -29,46 +46,14 @@ def rust_proto_repositories():
             "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v3.10.0.tar.gz",
             "https://github.com/protocolbuffers/protobuf/archive/v3.10.0.tar.gz",
         ],
-    )
-
-    maybe(
-        http_archive,
-        name = "rules_python",
-        strip_prefix = "rules_python-0.0.1",
-        type = "zip",
-        urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_python/archive/0.0.1.zip",
-            "https://github.com/bazelbuild/rules_python/archive/0.0.1.zip",
-        ],
-        sha256 = "f73c0cf51c32c7aaeaf02669ed03b32d12f2d92e1b05699eb938a75f35a210f4",
-    )
-
-    maybe(
-        http_archive,
-        name = "six",
-        build_file = "@com_google_protobuf//:third_party/six.BUILD",
-        sha256 = "d16a0141ec1a18405cd4ce8b4613101da75da0e9a7aec5bdd4fa804d0e0eba73",
-        urls = [
-            "https://mirror.bazel.build/pypi.python.org/packages/source/s/six/six-1.12.0.tar.gz",
-            "https://pypi.python.org/packages/source/s/six/six-1.12.0.tar.gz",
-        ],
-    )
-
-    maybe(
-        http_archive,
-        name = "zlib",
-        build_file = "@com_google_protobuf//:third_party/zlib.BUILD",
-        sha256 = "c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1",
-        strip_prefix = "zlib-1.2.11",
-        urls = [
-            "https://mirror.bazel.build/zlib.net/zlib-1.2.11.tar.gz",
-            "https://zlib.net/zlib-1.2.11.tar.gz",
+        patch_args = ["-p1"],
+        patches = [
+            Label("//proto/patches:com_google_protobuf-v3.10.0-bzl_visibility.patch"),
         ],
     )
 
     rules_rust_proto_fetch_remote_crates()
 
     # Register toolchains
-    native.register_toolchains(
-        "@io_bazel_rules_rust//proto:default-proto-toolchain",
-    )
+    if register_default_toolchain:
+        native.register_toolchains(str(Label("//proto:default-proto-toolchain")))
