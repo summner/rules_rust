@@ -13,4 +13,4 @@ genmode = "Remote"
 workspace_path = "//test/cargo_manifest/raze"
 gen_workspace_prefix = "rules_rust_test_cargo_manifest"
 package_aliases_dir = "."
-# default_gen_buildrs = false
+default_gen_buildrs = true

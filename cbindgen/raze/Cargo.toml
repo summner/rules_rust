@@ -13,7 +13,7 @@ cbindgen = "0.15.0"
 workspace_path = "//cbindgen/raze"
 genmode = "Remote"
 gen_workspace_prefix = "rules_rust_cbindgen"
-default_gen_buildrs = true
+package_aliases_dir = "."
 
 [package.metadata.raze.crates.cbindgen.'0.15.0']
 extra_aliased_targets = ["cargo_bin_cbindgen"]

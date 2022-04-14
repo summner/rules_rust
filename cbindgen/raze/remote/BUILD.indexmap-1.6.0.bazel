@@ -6,15 +6,16 @@ DO NOT EDIT! Replaced on runs of cargo-raze
 """
 
 # buildifier: disable=load
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
+# buildifier: disable=load
 load(
     "@rules_rust//rust:defs.bzl",
     "rust_binary",
     "rust_library",
+    "rust_proc_macro",
     "rust_test",
 )
-
-# buildifier: disable=load
-load("@bazel_skylib//lib:selects.bzl", "selects")
 
 package(default_visibility = [
     # Public for visibility by "@raze__crate__version//" targets.
@@ -28,7 +29,9 @@ licenses([
     "notice",  # Apache-2.0 from expression "Apache-2.0 OR MIT"
 ])
 
-# Generated Targets# buildifier: disable=load-on-top
+# Generated Targets
+# buildifier: disable=out-of-order-load
+# buildifier: disable=load-on-top
 load(
     "@rules_rust//cargo:cargo_build_script.bzl",
     "cargo_build_script",
@@ -68,13 +71,14 @@ rust_library(
     crate_features = [
     ],
     crate_root = "src/lib.rs",
-    crate_type = "lib",
+    data = [],
     edition = "2018",
     rustc_flags = [
         "--cap-lints=allow",
     ],
     tags = [
         "cargo-raze",
+        "crate-name=indexmap",
         "manual",
     ],
     version = "1.6.0",
