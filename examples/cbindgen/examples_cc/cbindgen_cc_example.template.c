@@ -16,7 +16,7 @@
 // primary purpose is to provide a common interface for all examples making 
 // tests consistent accros various use cases. The most notable thing about 
 // this file is the template variables. Please see 
-// @io_bazel_rules_rust//examples/cbindgen/examples_cc:cbindgen_cc_example.bzl
+// @rules_rust//examples/cbindgen/examples_cc:cbindgen_cc_example.bzl
 // for more information.
 
 #include "__CBINDGEN_EXAMPLE_HEADER__.h"

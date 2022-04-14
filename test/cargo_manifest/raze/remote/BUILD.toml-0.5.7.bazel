@@ -6,15 +6,16 @@ DO NOT EDIT! Replaced on runs of cargo-raze
 """
 
 # buildifier: disable=load
-load(
-    "@io_bazel_rules_rust//rust:rust.bzl",
-    "rust_binary",
-    "rust_library",
-    "rust_test",
-)
+load("@bazel_skylib//lib:selects.bzl", "selects")
 
 # buildifier: disable=load
-load("@bazel_skylib//lib:selects.bzl", "selects")
+load(
+    "@rules_rust//rust:defs.bzl",
+    "rust_binary",
+    "rust_library",
+    "rust_proc_macro",
+    "rust_test",
+)
 
 package(default_visibility = [
     # Public for visibility by "@raze__crate__version//" targets.
@@ -43,13 +44,14 @@ rust_library(
         "default",
     ],
     crate_root = "src/lib.rs",
-    crate_type = "lib",
+    data = [],
     edition = "2018",
     rustc_flags = [
         "--cap-lints=allow",
     ],
     tags = [
         "cargo-raze",
+        "crate-name=toml",
         "manual",
     ],
     version = "0.5.7",

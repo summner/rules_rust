@@ -14,8 +14,8 @@
 
 """Example of `rust_cbindgen_library` rule with a python test binary"""
 
-load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library")
-load("@io_bazel_rules_rust//cbindgen:cbindgen.bzl", "rust_cbindgen_library")
+load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//cbindgen:cbindgen.bzl", "rust_cbindgen_library")
 load("@rules_python//python:python.bzl", "py_test")
 
 rust_library(

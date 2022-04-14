@@ -1,6 +1,6 @@
 """A module defining all dependencies for internal `rules_rust` tests"""
 
-load("@io_bazel_rules_rust//test/cargo_manifest/raze:crates.bzl", "rules_rust_test_cargo_manifest_fetch_remote_crates")
+load("@rules_rust//test/cargo_manifest/raze:crates.bzl", "rules_rust_test_cargo_manifest_fetch_remote_crates")
 
 # buildifier: disable=unnamed-macro
 def test_repositories():

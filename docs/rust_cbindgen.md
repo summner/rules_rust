@@ -16,7 +16,7 @@ Generate C/C++ bindings to Rust code from `rust_library` targets
 Note that in order to use these rules, the following snippet must be added to your projects `WORKSPACE.bazel` file:
 
 ```python
-load("@io_bazel_rules_rust//cbindgen:repositories.bzl", "rust_cbindgen_repositories")
+load("@rules_rust//cbindgen:repositories.bzl", "rust_cbindgen_repositories")
 
 rust_cbindgen_repositories()
 ```

@@ -1,9 +1,9 @@
 """Example of `rust_cbindgen` rule with basic C++ test binary"""
 
 load("@examples//cbindgen/examples_cc:cbindgen_cc_example.bzl", "generate_src")
-load("@io_bazel_rules_rust//cbindgen:cbindgen.bzl", "rust_cbindgen_library")
-load("@io_bazel_rules_rust//cbindgen:toolchain.bzl", "rust_cbindgen_toolchain")
-load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library")
+load("@rules_rust//cbindgen:cbindgen.bzl", "rust_cbindgen_library")
+load("@rules_rust//cbindgen:toolchain.bzl", "rust_cbindgen_toolchain")
+load("@rules_rust//rust:defs.bzl", "rust_library")
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
 # C++ static library example
@@ -145,5 +145,5 @@ rust_cbindgen_toolchain(
 toolchain(
     name = "cbindgen_toolchain",
     toolchain = "cbindgen_toolchain_impl",
-    toolchain_type = "@io_bazel_rules_rust//cbindgen:cbindgen_toolchain",
+    toolchain_type = "@rules_rust//cbindgen:cbindgen_toolchain",
 )

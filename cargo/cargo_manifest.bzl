@@ -2,8 +2,9 @@
 for interacting with vanilla Rust tooling.
 """
 
-load("@io_bazel_rules_rust//rust:private/rustc.bzl", "CrateInfo")
-load("@io_bazel_rules_rust//rust:private/utils.bzl", "relativize")
+load("//rust/private:providers.bzl", "CrateInfo")
+
+load("//rust/private:utils.bzl", "relativize")
 
 CargoManifestInfo = provider(
     doc = "A provider contianing information about a Crate's cargo metadata.",
@@ -27,7 +28,7 @@ def _output_dir(ctx):
 def _is_external_crate(target):
     """Returns whether or not the target is an external target.
 
-    eg: `@bazel_skylib//:lib` is an external target where as `@io_bazel_rules_rust//:lib` or `//:lib` are not.
+    eg: `@bazel_skylib//:lib` is an external target where as `@rules_rust//:lib` or `//:lib` are not.
 
     Args:
         target (Target): The target the aspect is being applied to.
@@ -162,6 +163,6 @@ cargo_manifest_aspect = aspect(
     attr_aspects = ["deps"],
     implementation = _cargo_manifest_aspect_impl,
     toolchains = [
-        "@io_bazel_rules_rust//rust:toolchain",
+        "@rules_rust//rust:toolchain",
     ],
 )

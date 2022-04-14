@@ -14,8 +14,8 @@
 
 """Cbindgen rule for rules_rust"""
 
-load("@io_bazel_rules_rust//rust:private/rustc.bzl", "CrateInfo", "DepInfo")
-load("@io_bazel_rules_rust//cargo:cargo_manifest.bzl", "CargoManifestInfo", "cargo_manifest_aspect")
+load("@rules_rust//rust:private/rustc.bzl", "CrateInfo", "DepInfo")
+load("@rules_rust//cargo:cargo_manifest.bzl", "CargoManifestInfo", "cargo_manifest_aspect")
 
 _rust_cbindgen_library_doc = """\
 Generate C/C++ bindings to Rust code from `rust_library` targets
@@ -27,7 +27,7 @@ generate C/C++ bindings to be used in other rules that otherwise expect `cc_libr
 Note that in order to use these rules, the following snippet must be added to your projects `WORKSPACE.bazel` file:
 
 ```python
-load("@io_bazel_rules_rust//cbindgen:repositories.bzl", "rust_cbindgen_repositories")
+load("@rules_rust//cbindgen:repositories.bzl", "rust_cbindgen_repositories")
 
 rust_cbindgen_repositories()
 ```
@@ -76,7 +76,7 @@ def _rust_cbindgen_library_impl(ctx):
         ))
 
     # Determine the location of the cbindgen executable
-    toolchain = ctx.toolchains["@io_bazel_rules_rust//cbindgen:cbindgen_toolchain"]
+    toolchain = ctx.toolchains["@rules_rust//cbindgen:cbindgen_toolchain"]
     cbindgen_bin = toolchain.cbindgen
 
     # Optionally use the user defined template if one is provided
@@ -133,7 +133,7 @@ def _rust_cbindgen_library_impl(ctx):
         ],
     )
 
-    rust_toolchain = ctx.toolchains["@io_bazel_rules_rust//rust:toolchain"]
+    rust_toolchain = ctx.toolchains["@rules_rust//rust:toolchain"]
     env = {
         "CARGO": rust_toolchain.cargo.path,
         "HOST": rust_toolchain.exec_triple,
@@ -247,7 +247,7 @@ rust_cbindgen_library = rule(
         "config": "%{name}.cbindgen.toml",
     },
     toolchains = [
-        "@io_bazel_rules_rust//cbindgen:cbindgen_toolchain",
-        "@io_bazel_rules_rust//rust:toolchain",
+        "@rules_rust//cbindgen:cbindgen_toolchain",
+        "@rules_rust//rust:toolchain",
     ],
 )

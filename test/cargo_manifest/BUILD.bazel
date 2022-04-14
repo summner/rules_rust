@@ -1,4 +1,4 @@
-load("//rust:rust.bzl", "rust_binary", "rust_library")
+load("//rust:defs.bzl", "rust_binary", "rust_library")
 load(":cargo_manifest_test.bzl", "cargo_manifest_test")
 
 rust_library(
@@ -21,7 +21,7 @@ rust_binary(
     srcs = ["runner.rs"],
     edition = "2018",
     deps = [
-        "@io_bazel_rules_rust//test/cargo_manifest/raze:cargo_toml",
+        "//test/cargo_manifest/raze:cargo_toml",
     ],
 )
 

@@ -3,6 +3,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//test/load_arbitrary_tool:load_arbitrary_tool_test.bzl", "load_arbitrary_tool_test")
+load("//test/cargo_manifest/raze:crates.bzl", "rules_rust_test_cargo_manifest_fetch_remote_crates")
 
 _LIBC_BUILD_FILE_CONTENT = """\
 load("@rules_rust//rust:defs.bzl", "rust_library")
@@ -17,7 +18,7 @@ rust_library(
 
 def rules_rust_test_deps():
     """Load dependencies for rules_rust tests"""
-
+    rules_rust_test_cargo_manifest_fetch_remote_crates()
     load_arbitrary_tool_test()
 
     maybe(

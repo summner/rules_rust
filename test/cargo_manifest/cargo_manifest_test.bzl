@@ -1,6 +1,6 @@
 """A module defining a helper rule for testing `cargo_manifest_aspect`"""
 
-load("@io_bazel_rules_rust//cargo:cargo_manifest.bzl", "cargo_manifest_aspect")
+load("//cargo:cargo_manifest.bzl", "cargo_manifest_aspect")
 
 def _gather_manifest_files(manifests):
     """Gather the File objects from a list of transitive cargo manifests
@@ -63,7 +63,7 @@ cargo_manifest_test = rule(
         ),
         "_runner": attr.label(
             doc = "The executable for the test",
-            default = "@io_bazel_rules_rust//test/cargo_manifest:runner",
+            default = "//test/cargo_manifest:runner",
             executable = True,
             cfg = "exec",
         ),

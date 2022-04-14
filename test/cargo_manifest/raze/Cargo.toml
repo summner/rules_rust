@@ -12,4 +12,5 @@ cargo_toml = "0.8.1"
 genmode = "Remote"
 workspace_path = "//test/cargo_manifest/raze"
 gen_workspace_prefix = "rules_rust_test_cargo_manifest"
-default_gen_buildrs = true
+package_aliases_dir = "."
+# default_gen_buildrs = false

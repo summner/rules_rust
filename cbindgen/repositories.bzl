@@ -14,7 +14,7 @@
 
 """Dependent repositories for cbindgen rules"""
 
-load("@io_bazel_rules_rust//cbindgen/raze:crates.bzl", "rules_rust_cbindgen_fetch_remote_crates")
+load("@rules_rust//cbindgen/raze:crates.bzl", "rules_rust_cbindgen_fetch_remote_crates")
 
 # buildifier: disable=unnamed-macro
 def rust_cbindgen_repositories():
@@ -22,4 +22,4 @@ def rust_cbindgen_repositories():
 
     rules_rust_cbindgen_fetch_remote_crates()
 
-    native.register_toolchains("@io_bazel_rules_rust//cbindgen:default_cbindgen_toolchain")
+    native.register_toolchains("@rules_rust//cbindgen:default_cbindgen_toolchain")
