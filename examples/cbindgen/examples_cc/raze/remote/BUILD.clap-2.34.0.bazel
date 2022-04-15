@@ -26,17 +26,24 @@ package(default_visibility = [
 ])
 
 licenses([
-    "notice",  # MIT from expression "MIT OR Apache-2.0"
+    "notice",  # MIT from expression "MIT"
 ])
 
 # Generated Targets
 
 rust_library(
-    name = "tempfile",
+    name = "clap",
     srcs = glob(["**/*.rs"]),
     aliases = {
     },
     crate_features = [
+        "ansi_term",
+        "atty",
+        "color",
+        "default",
+        "strsim",
+        "suggestions",
+        "vec_map",
     ],
     crate_root = "src/lib.rs",
     data = [],
@@ -46,17 +53,20 @@ rust_library(
     ],
     tags = [
         "cargo-raze",
-        "crate-name=tempfile",
+        "crate-name=clap",
         "manual",
     ],
-    version = "3.1.0",
+    version = "2.34.0",
     # buildifier: leave-alone
     deps = [
-        "@cbindgen_cc_examples__cfg_if__0_1_10//:cfg_if",
-        "@cbindgen_cc_examples__rand__0_7_3//:rand",
-        "@cbindgen_cc_examples__remove_dir_all__0_5_3//:remove_dir_all",
+        "@cbindgen_cc_examples__atty__0_2_14//:atty",
+        "@cbindgen_cc_examples__bitflags__1_3_2//:bitflags",
+        "@cbindgen_cc_examples__strsim__0_8_0//:strsim",
+        "@cbindgen_cc_examples__textwrap__0_11_0//:textwrap",
+        "@cbindgen_cc_examples__unicode_width__0_1_9//:unicode_width",
+        "@cbindgen_cc_examples__vec_map__0_8_2//:vec_map",
     ] + selects.with_or({
-        # cfg(unix)
+        # cfg(not(windows))
         (
             "@rules_rust//rust/platform:i686-apple-darwin",
             "@rules_rust//rust/platform:i686-unknown-linux-gnu",
@@ -71,29 +81,14 @@ rust_library(
             "@rules_rust//rust/platform:i686-unknown-freebsd",
             "@rules_rust//rust/platform:powerpc-unknown-linux-gnu",
             "@rules_rust//rust/platform:s390x-unknown-linux-gnu",
+            "@rules_rust//rust/platform:wasm32-unknown-unknown",
+            "@rules_rust//rust/platform:wasm32-wasi",
             "@rules_rust//rust/platform:x86_64-apple-ios",
             "@rules_rust//rust/platform:x86_64-linux-android",
             "@rules_rust//rust/platform:x86_64-unknown-freebsd",
         ): [
-            "@cbindgen_cc_examples__libc__0_2_80//:libc",
-        ],
-        "//conditions:default": [],
-    }) + selects.with_or({
-        # cfg(windows)
-        (
-            "@rules_rust//rust/platform:i686-pc-windows-msvc",
-            "@rules_rust//rust/platform:x86_64-pc-windows-msvc",
-        ): [
-            "@cbindgen_cc_examples__winapi__0_3_9//:winapi",
+            "@cbindgen_cc_examples__ansi_term__0_12_1//:ansi_term",
         ],
         "//conditions:default": [],
     }),
 )
-
-# Unsupported target "namedtempfile" with type "test" omitted
-
-# Unsupported target "spooled" with type "test" omitted
-
-# Unsupported target "tempdir" with type "test" omitted
-
-# Unsupported target "tempfile" with type "test" omitted

@@ -74,7 +74,7 @@ rust_library(
             "@rules_rust//rust/platform:x86_64-linux-android",
             "@rules_rust//rust/platform:x86_64-unknown-freebsd",
         ): [
-            "@cbindgen_cc_examples__libc__0_2_80//:libc",
+            "@cbindgen_cc_examples__libc__0_2_123//:libc",
         ],
         "//conditions:default": [],
     }) + selects.with_or({

@@ -31,31 +31,12 @@ licenses([
 
 # Generated Targets
 
-# Unsupported target "generators" with type "bench" omitted
-
-# Unsupported target "misc" with type "bench" omitted
-
-# Unsupported target "seq" with type "bench" omitted
-
-# Unsupported target "weighted" with type "bench" omitted
-
-# Unsupported target "monte-carlo" with type "example" omitted
-
-# Unsupported target "monty-hall" with type "example" omitted
-
 rust_library(
-    name = "rand",
+    name = "tempfile",
     srcs = glob(["**/*.rs"]),
     aliases = {
-        "@cbindgen_cc_examples__getrandom__0_1_15//:getrandom": "getrandom_package",
     },
     crate_features = [
-        "alloc",
-        "default",
-        "getrandom",
-        "getrandom_package",
-        "libc",
-        "std",
     ],
     crate_root = "src/lib.rs",
     data = [],
@@ -65,22 +46,21 @@ rust_library(
     ],
     tags = [
         "cargo-raze",
-        "crate-name=rand",
+        "crate-name=tempfile",
         "manual",
     ],
-    version = "0.7.3",
+    version = "3.3.0",
     # buildifier: leave-alone
     deps = [
-        "@cbindgen_cc_examples__getrandom__0_1_15//:getrandom",
-        "@cbindgen_cc_examples__rand_core__0_5_1//:rand_core",
+        "@cbindgen_cc_examples__cfg_if__1_0_0//:cfg_if",
+        "@cbindgen_cc_examples__fastrand__1_7_0//:fastrand",
+        "@cbindgen_cc_examples__remove_dir_all__0_5_3//:remove_dir_all",
     ] + selects.with_or({
-        # cfg(not(target_os = "emscripten"))
+        # cfg(any(unix, target_os = "wasi"))
         (
             "@rules_rust//rust/platform:i686-apple-darwin",
-            "@rules_rust//rust/platform:i686-pc-windows-msvc",
             "@rules_rust//rust/platform:i686-unknown-linux-gnu",
             "@rules_rust//rust/platform:x86_64-apple-darwin",
-            "@rules_rust//rust/platform:x86_64-pc-windows-msvc",
             "@rules_rust//rust/platform:x86_64-unknown-linux-gnu",
             "@rules_rust//rust/platform:aarch64-apple-darwin",
             "@rules_rust//rust/platform:aarch64-apple-ios",
@@ -91,37 +71,30 @@ rust_library(
             "@rules_rust//rust/platform:i686-unknown-freebsd",
             "@rules_rust//rust/platform:powerpc-unknown-linux-gnu",
             "@rules_rust//rust/platform:s390x-unknown-linux-gnu",
-            "@rules_rust//rust/platform:wasm32-unknown-unknown",
             "@rules_rust//rust/platform:wasm32-wasi",
             "@rules_rust//rust/platform:x86_64-apple-ios",
             "@rules_rust//rust/platform:x86_64-linux-android",
             "@rules_rust//rust/platform:x86_64-unknown-freebsd",
         ): [
-            "@cbindgen_cc_examples__rand_chacha__0_2_2//:rand_chacha",
+            "@cbindgen_cc_examples__libc__0_2_123//:libc",
         ],
         "//conditions:default": [],
     }) + selects.with_or({
-        # cfg(unix)
+        # cfg(windows)
         (
-            "@rules_rust//rust/platform:i686-apple-darwin",
-            "@rules_rust//rust/platform:i686-unknown-linux-gnu",
-            "@rules_rust//rust/platform:x86_64-apple-darwin",
-            "@rules_rust//rust/platform:x86_64-unknown-linux-gnu",
-            "@rules_rust//rust/platform:aarch64-apple-darwin",
-            "@rules_rust//rust/platform:aarch64-apple-ios",
-            "@rules_rust//rust/platform:aarch64-linux-android",
-            "@rules_rust//rust/platform:aarch64-unknown-linux-gnu",
-            "@rules_rust//rust/platform:arm-unknown-linux-gnueabi",
-            "@rules_rust//rust/platform:i686-linux-android",
-            "@rules_rust//rust/platform:i686-unknown-freebsd",
-            "@rules_rust//rust/platform:powerpc-unknown-linux-gnu",
-            "@rules_rust//rust/platform:s390x-unknown-linux-gnu",
-            "@rules_rust//rust/platform:x86_64-apple-ios",
-            "@rules_rust//rust/platform:x86_64-linux-android",
-            "@rules_rust//rust/platform:x86_64-unknown-freebsd",
+            "@rules_rust//rust/platform:i686-pc-windows-msvc",
+            "@rules_rust//rust/platform:x86_64-pc-windows-msvc",
         ): [
-            "@cbindgen_cc_examples__libc__0_2_80//:libc",
+            "@cbindgen_cc_examples__winapi__0_3_9//:winapi",
         ],
         "//conditions:default": [],
     }),
 )
+
+# Unsupported target "namedtempfile" with type "test" omitted
+
+# Unsupported target "spooled" with type "test" omitted
+
+# Unsupported target "tempdir" with type "test" omitted
+
+# Unsupported target "tempfile" with type "test" omitted

@@ -52,7 +52,6 @@ cargo_build_script(
         "printing",
         "proc-macro",
         "quote",
-        "visit",
     ],
     crate_root = "build.rs",
     data = glob(["**"]),
@@ -64,7 +63,7 @@ cargo_build_script(
         "cargo-raze",
         "manual",
     ],
-    version = "1.0.53",
+    version = "1.0.91",
     visibility = ["//visibility:private"],
     deps = [
     ],
@@ -87,7 +86,6 @@ rust_library(
         "printing",
         "proc-macro",
         "quote",
-        "visit",
     ],
     crate_root = "src/lib.rs",
     data = [],
@@ -100,15 +98,17 @@ rust_library(
         "crate-name=syn",
         "manual",
     ],
-    version = "1.0.53",
+    version = "1.0.91",
     # buildifier: leave-alone
     deps = [
         ":syn_build_script",
-        "@cbindgen_cc_examples__proc_macro2__1_0_24//:proc_macro2",
-        "@cbindgen_cc_examples__quote__1_0_7//:quote",
-        "@cbindgen_cc_examples__unicode_xid__0_2_1//:unicode_xid",
+        "@cbindgen_cc_examples__proc_macro2__1_0_37//:proc_macro2",
+        "@cbindgen_cc_examples__quote__1_0_18//:quote",
+        "@cbindgen_cc_examples__unicode_xid__0_2_2//:unicode_xid",
     ],
 )
+
+# Unsupported target "regression" with type "test" omitted
 
 # Unsupported target "test_asyncness" with type "test" omitted
 

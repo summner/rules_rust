@@ -14,7 +14,7 @@ licenses([
 # Aliased targets
 alias(
     name = "cargo_bin_cbindgen",
-    actual = "@cbindgen_cc_examples__cbindgen__0_13_2//:cargo_bin_cbindgen",
+    actual = "@cbindgen_cc_examples__cbindgen__0_15_0//:cargo_bin_cbindgen",
     tags = [
         "cargo-raze",
         "manual",
@@ -23,7 +23,7 @@ alias(
 
 alias(
     name = "cbindgen",
-    actual = "@cbindgen_cc_examples__cbindgen__0_13_2//:cbindgen",
+    actual = "@cbindgen_cc_examples__cbindgen__0_15_0//:cbindgen",
     tags = [
         "cargo-raze",
         "manual",
@@ -32,7 +32,7 @@ alias(
 
 alias(
     name = "libc",
-    actual = "@cbindgen_cc_examples__libc__0_2_80//:libc",
+    actual = "@cbindgen_cc_examples__libc__0_2_123//:libc",
     tags = [
         "cargo-raze",
         "manual",

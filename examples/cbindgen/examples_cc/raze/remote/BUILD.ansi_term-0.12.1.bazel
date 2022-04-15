@@ -26,33 +26,46 @@ package(default_visibility = [
 ])
 
 licenses([
-    "notice",  # MIT from expression "MIT OR Apache-2.0"
+    "notice",  # MIT from expression "MIT"
 ])
 
 # Generated Targets
 
+# Unsupported target "256_colours" with type "example" omitted
+
+# Unsupported target "basic_colours" with type "example" omitted
+
+# Unsupported target "rgb_colours" with type "example" omitted
+
 rust_library(
-    name = "rand_core",
+    name = "ansi_term",
     srcs = glob(["**/*.rs"]),
+    aliases = {
+    },
     crate_features = [
-        "alloc",
-        "getrandom",
-        "std",
     ],
     crate_root = "src/lib.rs",
     data = [],
-    edition = "2018",
+    edition = "2015",
     rustc_flags = [
         "--cap-lints=allow",
     ],
     tags = [
         "cargo-raze",
-        "crate-name=rand_core",
+        "crate-name=ansi_term",
         "manual",
     ],
-    version = "0.5.1",
+    version = "0.12.1",
     # buildifier: leave-alone
     deps = [
-        "@cbindgen_cc_examples__getrandom__0_1_15//:getrandom",
-    ],
+    ] + selects.with_or({
+        # cfg(target_os = "windows")
+        (
+            "@rules_rust//rust/platform:i686-pc-windows-msvc",
+            "@rules_rust//rust/platform:x86_64-pc-windows-msvc",
+        ): [
+            "@cbindgen_cc_examples__winapi__0_3_9//:winapi",
+        ],
+        "//conditions:default": [],
+    }),
 )

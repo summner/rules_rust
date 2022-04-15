@@ -26,7 +26,7 @@ package(default_visibility = [
 ])
 
 licenses([
-    "notice",  # Apache-2.0 from expression "Apache-2.0 OR BSL-1.0"
+    "notice",  # MIT from expression "MIT OR Apache-2.0"
 ])
 
 # Generated Targets
@@ -38,7 +38,7 @@ load(
 )
 
 cargo_build_script(
-    name = "ryu_build_script",
+    name = "log_build_script",
     srcs = glob(["**/*.rs"]),
     build_script_env = {
     },
@@ -46,57 +46,48 @@ cargo_build_script(
     ],
     crate_root = "build.rs",
     data = glob(["**"]),
-    edition = "2018",
+    edition = "2015",
     rustc_flags = [
         "--cap-lints=allow",
+        "--cfg=atomic_cas",
     ],
     tags = [
         "cargo-raze",
         "manual",
     ],
-    version = "1.0.5",
+    version = "0.4.16",
     visibility = ["//visibility:private"],
     deps = [
     ],
 )
 
-# Unsupported target "bench" with type "bench" omitted
-
-# Unsupported target "upstream_benchmark" with type "example" omitted
+# Unsupported target "value" with type "bench" omitted
 
 rust_library(
-    name = "ryu",
+    name = "log",
     srcs = glob(["**/*.rs"]),
     crate_features = [
     ],
     crate_root = "src/lib.rs",
     data = [],
-    edition = "2018",
+    edition = "2015",
     rustc_flags = [
         "--cap-lints=allow",
+        "--cfg=atomic_cas",
     ],
     tags = [
         "cargo-raze",
-        "crate-name=ryu",
+        "crate-name=log",
         "manual",
     ],
-    version = "1.0.5",
+    version = "0.4.16",
     # buildifier: leave-alone
     deps = [
-        ":ryu_build_script",
+        ":log_build_script",
+        "@cbindgen_cc_examples__cfg_if__1_0_0//:cfg_if",
     ],
 )
 
-# Unsupported target "common_test" with type "test" omitted
+# Unsupported target "filters" with type "test" omitted
 
-# Unsupported target "d2s_table_test" with type "test" omitted
-
-# Unsupported target "d2s_test" with type "test" omitted
-
-# Unsupported target "exhaustive" with type "test" omitted
-
-# Unsupported target "f2s_test" with type "test" omitted
-
-# Unsupported target "s2d_test" with type "test" omitted
-
-# Unsupported target "s2f_test" with type "test" omitted
+# Unsupported target "macros" with type "test" omitted

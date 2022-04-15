@@ -21,7 +21,7 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2.79"
-cbindgen = "=0.13.2"
+cbindgen = "=0.15.0"
 
 [lib]
 name = "fake"
@@ -33,7 +33,7 @@ genmode = "Remote"
 gen_workspace_prefix = "cbindgen_cc_examples"
 package_aliases_dir = "."
 
-[package.metadata.raze.crates.cbindgen.'0.13.2']
+[package.metadata.raze.crates.cbindgen.'0.15.0']
 gen_buildrs = true
 extra_aliased_targets = ["cargo_bin_cbindgen"]
 
