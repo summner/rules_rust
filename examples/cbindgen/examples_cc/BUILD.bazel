@@ -3,14 +3,13 @@
 load("@examples//cbindgen/examples_cc:cbindgen_cc_example.bzl", "generate_src")
 load("@rules_rust//cbindgen:cbindgen.bzl", "rust_cbindgen_library")
 load("@rules_rust//cbindgen:toolchain.bzl", "rust_cbindgen_toolchain")
-load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library", "rust_static_library")
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
 # C++ static library example
-rust_library(
+rust_static_library(
     name = "rust_staticlib",
     srcs = ["@examples//cbindgen:rust_srcs"],
-    crate_type = "staticlib",
     deps = [
         "@examples//cbindgen/examples_cc/raze:libc",
     ],
@@ -48,10 +47,9 @@ cc_test(
 )
 
 # C++ cdylib library example
-rust_library(
+rust_shared_library(
     name = "rust_cdylib",
     srcs = ["@examples//cbindgen:rust_srcs"],
-    crate_type = "cdylib",
     deps = [
         "@examples//cbindgen/examples_cc/raze:libc",
     ],
@@ -105,10 +103,9 @@ rust_library(
     ],
 )
 
-rust_library(
+rust_static_library(
     name = "transitive_repr_c_lib",
     srcs = ["transitive_repr_c.rs"],
-    crate_type = "staticlib",
     edition = "2018",
     deps = [
         ":rust_rlib",

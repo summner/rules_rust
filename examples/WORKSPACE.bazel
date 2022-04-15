@@ -79,6 +79,10 @@ load("//sys:sys_deps.bzl", "sys_deps")
 
 sys_deps()
 
+load("//cbindgen:cbindgen_examples_deps.bzl", "cbindgen_examples_deps")
+
+cbindgen_examples_deps()
+
 local_repository(
     name = "rules_rust_example_cargo_manifest_dir",
     path = "cargo_manifest_dir/external_crate",
@@ -124,3 +128,4 @@ load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
 # Use this as is if you are using the rbe_ubuntu16_04 container,
 # otherwise refer to RBE docs.
 rbe_autoconfig(name = "buildkite_config")
+

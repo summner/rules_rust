@@ -31,6 +31,7 @@ path = "fake.rs"
 workspace_path = "//cbindgen/examples_cc/raze"
 genmode = "Remote"
 gen_workspace_prefix = "cbindgen_cc_examples"
+package_aliases_dir = "."
 
 [package.metadata.raze.crates.cbindgen.'0.13.2']
 gen_buildrs = true

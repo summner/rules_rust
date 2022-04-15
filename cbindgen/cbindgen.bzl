@@ -14,8 +14,8 @@
 
 """Cbindgen rule for rules_rust"""
 
-load("@rules_rust//rust:private/rustc.bzl", "CrateInfo", "DepInfo")
-load("@rules_rust//cargo:cargo_manifest.bzl", "CargoManifestInfo", "cargo_manifest_aspect")
+load("//rust/private:providers.bzl", "CrateInfo", "DepInfo")
+load("//cargo:cargo_manifest.bzl", "CargoManifestInfo", "cargo_manifest_aspect")
 
 _rust_cbindgen_library_doc = """\
 Generate C/C++ bindings to Rust code from `rust_library` targets
@@ -123,12 +123,12 @@ def _rust_cbindgen_library_impl(ctx):
     args.add(rust_lib[CargoManifestInfo].toml.dirname)
 
     inputs = depset(
-        rust_lib[CrateInfo].srcs + [ctx.outputs.config],
+        rust_lib[CrateInfo].srcs.to_list() + [ctx.outputs.config],
         transitive = [
             rust_lib[OutputGroupInfo].all_files,
             depset(transitive = [
-                depset(dep[CrateInfo].srcs)
-                for dep in rust_lib[CrateInfo].deps
+                dep.crate_info.srcs
+                for dep in rust_lib[CrateInfo].deps.to_list()
             ]),
         ],
     )
@@ -147,8 +147,8 @@ def _rust_cbindgen_library_impl(ctx):
             rust_toolchain.rustc,
         ],
         transitive = [
-            rust_toolchain.rustc_lib.files,
-            rust_toolchain.rust_lib.files,
+            rust_toolchain.rustc_lib,
+            rust_toolchain.rust_lib,
         ],
     )
 

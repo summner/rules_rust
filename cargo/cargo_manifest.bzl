@@ -3,7 +3,6 @@ for interacting with vanilla Rust tooling.
 """
 
 load("//rust/private:providers.bzl", "CrateInfo")
-
 load("//rust/private:utils.bzl", "relativize")
 
 CargoManifestInfo = provider(
@@ -60,7 +59,7 @@ def _clone_external_crate_sources(ctx, target):
     outputs = []
     copy_commands = []
     root = None
-    for src in crate_info.srcs:
+    for src in crate_info.srcs.to_list():
         # Get the path from the root of `external`
 
         external_crate_short_path = src.short_path[len("../"):]
@@ -114,7 +113,7 @@ def _cargo_manifest_aspect_impl(target, ctx):
             - (OutputGroupInfo): A provider that indicates what output groups a rule has.
     """
     rule = ctx.rule
-    if not rule.kind in ["rust_library", "rust_binary"]:
+    if not rule.kind in ["rust_library", "rust_shared_library", "rust_static_library", "rust_binary"]:
         return []
 
     manifest = ctx.actions.declare_file("{}/Cargo.toml".format(_output_dir(ctx)))

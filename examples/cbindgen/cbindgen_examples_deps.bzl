@@ -18,8 +18,8 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@examples//cbindgen/examples_cc/raze:crates.bzl", "cbindgen_cc_examples_fetch_remote_crates")
 
 # buildifier: disable=unnamed-macro
-def cbindgen_examples_dependencies():
-    """Define variosu dependencies for the rules_rust cbindgen examples"""
+def cbindgen_examples_deps():
+    """Define various dependencies for the rules_rust cbindgen examples"""
     cbindgen_cc_examples_fetch_remote_crates()
 
     native.register_toolchains("@examples//cbindgen/examples_cc:cbindgen_toolchain")
