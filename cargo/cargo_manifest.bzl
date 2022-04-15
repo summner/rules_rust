@@ -113,7 +113,8 @@ def _cargo_manifest_aspect_impl(target, ctx):
             - (OutputGroupInfo): A provider that indicates what output groups a rule has.
     """
     rule = ctx.rule
-    if not rule.kind in ["rust_library", "rust_shared_library", "rust_static_library", "rust_binary"]:
+    library_kinds = ["rust_library", "rust_shared_library", "rust_static_library"]
+    if not rule.kind in library_kinds + ["rust_binary"]:
         return []
 
     manifest = ctx.actions.declare_file("{}/Cargo.toml".format(_output_dir(ctx)))
@@ -133,7 +134,7 @@ def _cargo_manifest_aspect_impl(target, ctx):
         content = _CARGO_MANIFEST_TEMPLATE.format(
             target_label = target.label,
             build_file_path = ctx.build_file_path,
-            crate_type = "[lib]" if rule.kind == "rust_library" else "[[bin]]",
+            crate_type = "[lib]" if rule.kind in library_kinds else "[[bin]]",
             name = target.label.name,
             version = rule.attr.version,
             edition = target[CrateInfo].edition,
