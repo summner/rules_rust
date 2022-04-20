@@ -22,5 +22,5 @@ rust_cbindgen_toolchain(
 toolchain(
     name = "default_cbindgen_toolchain",
     toolchain = "default_cbindgen_toolchain_impl",
-    toolchain_type = "@rules_rust//cbindgen:cbindgen_toolchain",
+    toolchain_type = "//cbindgen:cbindgen_toolchain",
 )

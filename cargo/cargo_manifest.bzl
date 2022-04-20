@@ -98,6 +98,9 @@ path = "{path}"
 {dependencies}
 """
 
+def label_to_valid_crate_name(label):
+    return label.name.replace("-", "_")
+
 def _cargo_manifest_aspect_impl(target, ctx):
     """Creates a separate Cargo.toml for each instance of a rust rule.
 
@@ -135,12 +138,12 @@ def _cargo_manifest_aspect_impl(target, ctx):
             target_label = target.label,
             build_file_path = ctx.build_file_path,
             crate_type = "[lib]" if rule.kind in library_kinds else "[[bin]]",
-            name = target.label.name,
+            name = label_to_valid_crate_name(target.label),
             version = rule.attr.version,
             edition = target[CrateInfo].edition,
             path = relativize(root_src.path, manifest.dirname),
             dependencies = "\n".join([
-                "{} = {{ path = \"{}\" }}".format(dep.label.name, relativize(dep[CargoManifestInfo].toml.dirname, manifest.dirname))
+                "{} = {{ path = \"{}\" }}".format(label_to_valid_crate_name(dep.label), relativize(dep[CargoManifestInfo].toml.dirname, manifest.dirname))
                 for dep in rust_deps
             ]),
         ),

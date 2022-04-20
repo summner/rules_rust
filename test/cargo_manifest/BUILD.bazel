@@ -2,17 +2,17 @@ load("//rust:defs.bzl", "rust_binary", "rust_library")
 load(":cargo_manifest_test.bzl", "cargo_manifest_test")
 
 rust_library(
-    name = "test_lib",
+    name = "test-lib",
     srcs = ["lib.rs"],
     edition = "2018",
 )
 
 rust_binary(
-    name = "test_bin",
+    name = "test-bin",
     srcs = ["main.rs"],
     edition = "2018",
     deps = [
-        ":test_lib",
+        ":test-lib",
     ],
 )
 
@@ -27,5 +27,7 @@ rust_binary(
 
 cargo_manifest_test(
     name = "test",
-    deps = ["test_bin"],
+    deps = ["test-bin"],
 )
+
+#TODO test conversion to kebabcase
